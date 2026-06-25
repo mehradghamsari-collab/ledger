@@ -1,0 +1,10 @@
+# NEVER commit secrets — these belong in Vercel Environment Variables
+*.pem
+.env
+.env.local
+.env*.local
+
+# Dependencies / build / OS junk
+node_modules/
+.vercel/
+.DS_Store
