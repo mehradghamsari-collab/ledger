@@ -1,40 +1,31 @@
 # Ledger
 
-A private two-person personal-finance app. Connects UK bank accounts via
-Enable Banking (Open Banking), stores transactions in Supabase, and shows
-spending, income, a direct-debit calendar, and activity.
+A private personal-finance app with a polished UI. Works offline (CSV import +
+manual entry, saved on your device) and can optionally sync live from your bank
+via Enable Banking. No database, no login, no npm dependencies.
 
-## File structure
-
+## Files
 ```
 ledger/
-├── index.html            App + login (contains your Supabase URL + anon key)
+├── index.html        The app (works on its own, even without the backend)
 ├── package.json
 ├── .gitignore
-├── supabase_schema.sql   Run once in Supabase SQL editor
-├── lib/
-│   ├── eb.js             Enable Banking helpers (JWT, state, normalisers)
-│   └── supabase.js       Server-side Supabase admin client
+├── lib/eb.js          Enable Banking helper (JWT, fetch)
 └── api/
-    ├── banks.js          GET /api/banks  — list available banks
-    ├── connect.js        GET /api/connect — start a bank authorization
-    └── eb-callback.js    Bank redirect target — saves data to Supabase
+    ├── banks.js       GET /api/banks — list banks
+    ├── connect.js     GET /api/connect?name=&country= — start a bank link
+    └── eb-callback.js Bank redirect — fetches transactions, hands them to the app
 ```
 
-## Keys
+## Backend keys (Vercel → Settings → Environment Variables)
+- `EB_APP_ID`        Enable Banking application ID (UUID)
+- `EB_PRIVATE_KEY`   full contents of the Enable Banking .pem
+Never commit the .pem.
 
-- In `index.html` (frontend, safe to expose): `SUPABASE_URL`, `SUPABASE_ANON_KEY` — already filled in.
-- In Vercel → Settings → Environment Variables (secret, server-side only):
-  - `EB_APP_ID`                   Enable Banking application ID (UUID)
-  - `EB_PRIVATE_KEY`              full contents of the Enable Banking .pem
-  - `SUPABASE_URL`                your Supabase project URL
-  - `SUPABASE_SERVICE_ROLE_KEY`   Supabase service_role key
-  - `STATE_SECRET`                any long random string
-- Never commit the `.pem` file.
-
-## Setup recap
-
-1. Run `supabase_schema.sql` in Supabase (SQL Editor).
-2. Create your two users in Supabase → Authentication → Users (Auto Confirm).
-3. Set the Vercel environment variables above, then redeploy.
-4. Open the site, sign in, tap ＋ to connect a bank.
+## Deploy notes (learned the hard way)
+- After setting env vars, **redeploy**.
+- Vercel → Settings → **Deployment Protection** → turn **off** (the bank must be
+  able to redirect to /api/eb-callback, and you open the app without a Vercel login).
+- Make sure your newest deployment is promoted to **Production**; the clean
+  domain only serves the Production deployment.
+- The app also runs with no backend at all — just open index.html.
