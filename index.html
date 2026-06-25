@@ -349,10 +349,21 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // ===== PASTE YOUR SUPABASE PROJECT VALUES HERE =====
-const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_URL';        // e.g. https://abcdxyz.supabase.co
-const SUPABASE_ANON_KEY = 'PASTE_YOUR_SUPABASE_ANON_KEY'; // the public anon key (safe to expose)
+const SUPABASE_URL = 'https://moelvrjpnsclppzsrcus.supabase.co';        // e.g. https://abcdxyz.supabase.co
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vZWx2cmpwbnNjbHBwenNyY3VzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI0MDMyNzcsImV4cCI6MjA5Nzk3OTI3N30.CPDDtGaG-wvGRPfE0DSUnUDa2AN6z4bJhQRx9Q8y-oE'; // the public anon key (safe to expose)
 // ===================================================
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let sb;
+try {
+  if (SUPABASE_URL.includes('PASTE_') || SUPABASE_ANON_KEY.includes('PASTE_') || !SUPABASE_URL.startsWith('http'))
+    throw new Error('Supabase URL or key is not set correctly in index.html.');
+  sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (e) {
+  window.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = '<div style="padding:40px;font-family:-apple-system,system-ui,sans-serif;color:#14161C">'
+      + '<h2 style="font-family:sans-serif">Setup needed</h2><p style="color:#555">' + e.message + '</p></div>';
+  });
+  throw e;
+}
 let CURRENT_EMAIL = '';
 
 const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
