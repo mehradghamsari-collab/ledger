@@ -1,57 +1,40 @@
 # Ledger
 
-A private personal-finance web app for two people, connecting UK bank accounts
-through Enable Banking (Open Banking).
+A private two-person personal-finance app. Connects UK bank accounts via
+Enable Banking (Open Banking), stores transactions in Supabase, and shows
+spending, income, a direct-debit calendar, and activity.
 
-## What's in here
-
-| File | What it is |
-|------|------------|
-| `index.html` | The app itself (Home, Spending, Calendar, Activity). Currently shows sample data. |
-| `api/eb-callback.js` | The page banks redirect users back to after they approve access. Currently a stub. |
-| `package.json` | Tells Vercel to run the function as a modern ES module. |
-| `.gitignore` | Keeps secrets (your `.pem` key, `.env`) out of the repo. |
-
-## Repo layout
+## File structure
 
 ```
 ledger/
-├── index.html
-├── api/
-│   └── eb-callback.js
+├── index.html            App + login (contains your Supabase URL + anon key)
 ├── package.json
-└── .gitignore
+├── .gitignore
+├── supabase_schema.sql   Run once in Supabase SQL editor
+├── lib/
+│   ├── eb.js             Enable Banking helpers (JWT, state, normalisers)
+│   └── supabase.js       Server-side Supabase admin client
+└── api/
+    ├── banks.js          GET /api/banks  — list available banks
+    ├── connect.js        GET /api/connect — start a bank authorization
+    └── eb-callback.js    Bank redirect target — saves data to Supabase
 ```
 
-The `api/` folder matters: Vercel turns any file in there into a serverless
-function. `api/eb-callback.js` becomes the live URL `…/api/eb-callback`.
+## Keys
 
-## Deploy (no command line)
+- In `index.html` (frontend, safe to expose): `SUPABASE_URL`, `SUPABASE_ANON_KEY` — already filled in.
+- In Vercel → Settings → Environment Variables (secret, server-side only):
+  - `EB_APP_ID`                   Enable Banking application ID (UUID)
+  - `EB_PRIVATE_KEY`              full contents of the Enable Banking .pem
+  - `SUPABASE_URL`                your Supabase project URL
+  - `SUPABASE_SERVICE_ROLE_KEY`   Supabase service_role key
+  - `STATE_SECRET`                any long random string
+- Never commit the `.pem` file.
 
-1. Create a GitHub repo and upload these files (keep `eb-callback.js` inside an
-   `api/` folder).
-2. On vercel.com → Add New → Project → import the repo → Deploy.
-3. Your live URL appears, e.g. `https://ledger-xyz.vercel.app`.
-4. Your Enable Banking redirect URL is:
-   `https://ledger-xyz.vercel.app/api/eb-callback`
+## Setup recap
 
-## Secrets (do NOT put these in the code)
-
-In Vercel → Project → Settings → Environment Variables, add:
-
-| Name | Value |
-|------|-------|
-| `EB_APP_ID` | Your Enable Banking application ID (the UUID). |
-| `EB_PRIVATE_KEY` | The full contents of the downloaded `.pem` file. |
-
-Add Supabase keys here later too. Redeploy after adding variables.
-
-⚠️ Never upload the `.pem` file to GitHub. The `.gitignore` blocks it, but
-double-check before committing.
-
-## Not done yet
-
-- Real bank data (the session exchange inside `eb-callback.js`)
-- Supabase database for the two users + accounts + transactions
-- Category classifier
-- 90-day re-consent reminder
+1. Run `supabase_schema.sql` in Supabase (SQL Editor).
+2. Create your two users in Supabase → Authentication → Users (Auto Confirm).
+3. Set the Vercel environment variables above, then redeploy.
+4. Open the site, sign in, tap ＋ to connect a bank.
